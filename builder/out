@@ -1,0 +1,8 @@
+[[[[[ ~/builder-meteor/builder ]]]]]
+
+=> Started proxy.
+=> Started MongoDB.
+=> Started your app.
+
+=> App running at: http://localhost:80/
+=> Client modified -- refreshing=> Client modified -- refreshing (x2)
