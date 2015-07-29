@@ -68,29 +68,34 @@ Meteor.startup(function () {
             var skipCache = false;
             return Meteor.call('getApiData', 'game', {summonerId:summonerId, region:region}, base_url[region]+'api/lol/'+region+'/v1.3/game/by-summoner/'+summonerId+'/recent?_foo=1', skipCache)['games'];
         },
+        deriveData: function(currentVersion, data) {
+            var championInfo = Meteor.call('getChampionInfo', data.championId)
+            var champion = championInfo.name;
+            var championImage = 'https://ddragon.leagueoflegends.com/cdn/'+currentVersion+'/img/champion/'+championInfo.image.full;
+            var summonerSpells = _.map(data.summonerSpellIds, function(id) {
+                var spell = Meteor.call('getSummonerSpellInfo', id);
+                return {name:spell.name, image:'https://ddragon.leagueoflegends.com/cdn/'+currentVersion+'/img/spell/'+spell.image.full};
+            });
+            var items = _.map(data.itemIds, function(id) {
+                if (!id) return {name:'none', image:'empty.png'};
+                var item = Meteor.call('getItemInfo', id);
+                return {name:item.name, image:'https://ddragon.leagueoflegends.com/cdn/'+currentVersion+'/img/item/'+item.image.full};
+            });
+            return _.extend(data, {champion:champion, championImage:championImage, summonerSpells:summonerSpells, items:items});
+        },
         getRecentMatches: function(summonerName, region) {
             var summonerInfo = Meteor.call('getSummonerInfo', summonerName, region);
             var games = Meteor.call('getGames', summonerInfo['id'], region);
             var currentVersion = Meteor.call('getCurrentVersion');
             return _.map(games, function(match) {
                 var outcome = match.stats.win ? 'WIN' : 'LOSE';
-                var championInfo = Meteor.call('getChampionInfo', match.championId)
-                var champion = championInfo.name;
+                var championId = match.championId;
                 var mode = match.subType;
-                var championImage = 'https://ddragon.leagueoflegends.com/cdn/'+currentVersion+'/img/champion/'+championInfo.image.full;
                 var matchCreation = match.createDate;
                 var summonerSpellIds = [match.spell1, match.spell2];
-                var summonerSpells = _.map(summonerSpellIds, function(id) {
-                    var spell = Meteor.call('getSummonerSpellInfo', id);
-                    return {name:spell.name, image:'https://ddragon.leagueoflegends.com/cdn/'+currentVersion+'/img/spell/'+spell.image.full};
-                });
                 var itemIds = [match.stats.item0, match.stats.item1, match.stats.item2, match.stats.item3, match.stats.item4, match.stats.item5, match.stats.item6];
-                var items = _.map(itemIds, function(id) {
-                    if (!id) return {name:'none', image:'empty.png'};
-                    var item = Meteor.call('getItemInfo', id);
-                    return {name:item.name, image:'https://ddragon.leagueoflegends.com/cdn/'+currentVersion+'/img/item/'+item.image.full};
-                });
-                return {champion:champion, mode:mode, outcome:outcome, championImage:championImage, matchCreation:matchCreation, summonerSpells:summonerSpells, items:items};
+                var data = {outcome:outcome, championId:championId, mode:mode, matchCreation:matchCreation, summonerSpellIds:summonerSpellIds, itemIds:itemIds};
+                return Meteor.call('deriveData', currentVersion, data);
             });
         },
         getRankedMatches: function(summonerName, region) {
@@ -99,12 +104,13 @@ Meteor.startup(function () {
             var currentVersion = Meteor.call('getCurrentVersion');
             return _.map(matchHistory.reverse(), function(match) {
                 var outcome = match.participants[0].stats.winner ? 'WIN' : 'LOSE';
-                var championInfo = Meteor.call('getChampionInfo', match.participants[0].championId)
-                var champion = championInfo.name;
+                var championId = match.participants[0].championId;
                 var mode = match['queueType'];
-                var championImage = 'https://ddragon.leagueoflegends.com/cdn/'+currentVersion+'/img/champion/'+championInfo.image.full;
                 var matchCreation = match.matchCreation;
-                return {champion:champion, mode:mode, outcome:outcome, championImage:championImage, matchCreation:matchCreation};
+                var summonerSpellIds = [match.participants[0].spell1Id, match.participants[0].spell2Id];
+                var itemIds = [match.participants[0].stats.item0, match.participants[0].stats.item1, match.participants[0].stats.item2, match.participants[0].stats.item3, match.participants[0].stats.item4, match.participants[0].stats.item5, match.participants[0].stats.item6];
+                var data = {outcome:outcome, championId:championId, mode:mode, matchCreation:matchCreation, summonerSpellIds:summonerSpellIds, itemIds:itemIds};
+                return Meteor.call('deriveData', currentVersion, data);
             });
         }
     });
