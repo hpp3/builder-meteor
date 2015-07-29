@@ -21,10 +21,15 @@ Template.passData.helpers({
 });
 
 Template.passData.events({
-    'click input[type=button]': function() {
-        Meteor.call('getMatchStats', $('input[type=text]').val(), 'na', function(err, response) {
+    'click #recent-btn': function() {
+        Meteor.call('getRecentMatches', $('input[type=text]').val(), 'na', function(err, response) {
             Session.set('matches', response);
             console.log(response);
+        });
+    },
+    'click #ranked-btn': function() {
+        Meteor.call('getRankedMatches', $('input[type=text]').val(), 'na', function(err, response) {
+            Session.set('matches', response);
         });
     }
 });

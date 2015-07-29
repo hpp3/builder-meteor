@@ -48,7 +48,8 @@
 
 <template name="passData">
 <span>Summoner Name: </span><input type="text" value="hpp3"/>
-<input type="button" class="btn btn-primary" value="Get History" />
+<input type="button" id="recent-btn" class="btn btn-primary" value="Recent" />
+<input type="button" id="ranked-btn" class="btn btn-primary" value="Ranked" />
 <ul>{{#each matches}}
         {{> match}}
     {{/each}}
@@ -56,8 +57,17 @@
 </template>
 
 <template name="match">
-<li>{{outcome}} - {{mode}} <img class='champ-icon' src="{{championImage}}" alt="{{champion}}"> {{livestamp matchCreation}}</li>
+<li>{{outcome}} - {{mode}} - {{livestamp matchCreation}} <img class='champ-icon' src="{{championImage}}" alt="{{champion}}"> {{#each summonerSpells}} {{>summonerSpell}} {{/each}} {{#each items}} {{>item}} {{/each}}</li>
 </template>
+
+<template name="summonerSpell">
+<img class='ss-icon' src='{{image}}' alt='{{name}}'>
+</template>
+
+<template name="item">
+<img class='item-icon' src='{{image}}' alt='{{name}}'>
+</template>
+
 <template name="hello">
 <button class="btn-primary btn">Click Me</button>
 <p>You've pressed the button {{counter}} times.</p>
