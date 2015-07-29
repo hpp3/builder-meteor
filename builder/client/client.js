@@ -15,15 +15,15 @@ Template.hello.events({
 });
 
 Template.passData.helpers({
-    result: function () {
-        return Session.get('result');
+    matches: function () {
+        return Session.get('matches');
     }
 });
 
 Template.passData.events({
     'click input[type=button]': function() {
-        Meteor.call('getNamedKappa', $('input[type=text]').val(), function(err, response) {
-            Session.set('result', response);
+        Meteor.call('getMatchStats', $('input[type=text]').val(), 'na', function(err, response) {
+            Session.set('matches', response);
             console.log(response);
         });
     }
