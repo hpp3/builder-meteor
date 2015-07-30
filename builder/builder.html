@@ -57,7 +57,7 @@
 </template>
 
 <template name="match">
-<li>{{outcome}} - {{mode}} - {{livestamp matchCreation}} <img class='champ-icon' src="{{championImage}}" alt="{{champion}}"> {{#each summonerSpells}} {{>summonerSpell}} {{/each}} {{#each items}} {{>item}} {{/each}}</li>
+<li>{{outcome}} - {{mode}} - {{livestamp matchCreation}} <img class='champ-icon' src="{{championImage}}" alt="{{champion}}"> {{kills}}/{{deaths}}/{{assists}} ({{kda}}) {{cs}} CS {{#each summonerSpells}} {{>summonerSpell}} {{/each}} {{#each items}} {{>item}} {{/each}}</li>
 </template>
 
 <template name="summonerSpell">
