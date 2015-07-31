@@ -105,24 +105,10 @@ Meteor.startup(function () {
                 _.each(recentGames.reverse(), function(game) {
                     console.log(game.gameId, game.createDate);
                     var start = new Date();
-                    if (!gameDB.findOne({region:region, gameId:game.gameId})) {
+                    if (!gameDB.findOne({region:region, gameId:game.gameId, summonerId:summonerId})) {
                         console.log('preliminary insert');
-                        gameDB.insert({summonerId:[summonerId], region:region, gameId:game.gameId, game:game, time_inserted:Date.now()});
-                    } else if (!gameDB.findOne({region:region, gameId:game.gameId, summonerId:summonerId})) {
-                         console.log('updating game');
-                         gameDB.upsert({region:region, gameId:game.gameId}, {$addToSet:{summonerId:summonerId}});
-                    }
-                    else {
-                        console.log('doing nothing');
-                    }
-                    // } else {
-                    //     console.log('updating game');
-                    //     gameDB.upsert({region:region, gameId:game.gameId}, {$addToSet:{summonerId:summonerId}});
-                    // }
-                    //     console.log('new game, inserting');
-                    //     gameDB.insert({summonerId:summonerId, region:region, gameId:game.gameId, game:game, time_inserted:Date.now()});
-                    // } 
-// $set:{game:game, time_inserted:Date.now()}, 
+                        gameDB.insert({summonerId:summonerId, region:region, gameId:game.gameId, game:game, time_inserted:Date.now()});
+                    }  
                     var end = new Date();
                     console.log('took',(end-start),'millis');
                 });
