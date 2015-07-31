@@ -46,7 +46,7 @@ Meteor.startup(function () {
                 apiData = cached['_data'];
             }
             else {
-                console.log('network',api);
+                // console.log('network',api);
                 apiData = HTTP.call('GET', url+'&api_key='+getApiKey()).data;
                 cache.upsert(args, _.extend(args, {_data:apiData}));
             }
@@ -106,9 +106,23 @@ Meteor.startup(function () {
                     console.log(game.gameId, game.createDate);
                     var start = new Date();
                     if (!gameDB.findOne({region:region, gameId:game.gameId})) {
-                        console.log('new game, inserting');
-                        gameDB.insert({summonerId:summonerId, region:region, gameId:game.gameId, game:game, time_inserted:Date.now()});
-                    } 
+                        console.log('preliminary insert');
+                        gameDB.insert({summonerId:[summonerId], region:region, gameId:game.gameId, game:game, time_inserted:Date.now()});
+                    } else if (!gameDB.findOne({region:region, gameId:game.gameId, summonerId:summonerId})) {
+                         console.log('updating game');
+                         gameDB.upsert({region:region, gameId:game.gameId}, {$addToSet:{summonerId:summonerId}});
+                    }
+                    else {
+                        console.log('doing nothing');
+                    }
+                    // } else {
+                    //     console.log('updating game');
+                    //     gameDB.upsert({region:region, gameId:game.gameId}, {$addToSet:{summonerId:summonerId}});
+                    // }
+                    //     console.log('new game, inserting');
+                    //     gameDB.insert({summonerId:summonerId, region:region, gameId:game.gameId, game:game, time_inserted:Date.now()});
+                    // } 
+// $set:{game:game, time_inserted:Date.now()}, 
                     var end = new Date();
                     console.log('took',(end-start),'millis');
                 });
@@ -129,7 +143,6 @@ Meteor.startup(function () {
             var games = db.find({summonerId: summonerId, region: region}, {sort: {time_inserted:-1}, limit:20}).fetch();
             var end = new Date();
             console.log('fetch took',(end-start),'millis');
-            //var games = db.find({summonerId: summonerId, region: region}).fetch();
             console.log(games.length);
             return _.map(games, function(game) {
                 console.log(game.gameId);

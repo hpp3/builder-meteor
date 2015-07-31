@@ -29,8 +29,10 @@ Template.passData.events({
         });
     },
     'click #ranked-btn': function() {
+        $('#progress').html('pls wait');
         Meteor.call('getRankedMatches', $('input[type=text]').val(), 'na', function(err, response) {
             Session.set('matches', response);
+            $('#progress').html('k done');
         });
     }
 });
