@@ -42,6 +42,8 @@
 </div>
 <div class="page-container container">
 
+{{> hello}}
+<div id='progress'></div>
 {{> passData}}
 </div>
 </body>
@@ -57,7 +59,7 @@
 </template>
 
 <template name="match">
-<li>{{outcome}} - {{mode}} - {{livestamp matchCreation}} <img class='champ-icon' src="{{championImage}}" alt="{{champion}}"> {{kills}}/{{deaths}}/{{assists}} ({{kda}}) {{cs}} CS {{#each summonerSpells}} {{>summonerSpell}} {{/each}} {{#each items}} {{>item}} {{/each}}</li>
+<li><a href='{{matchHistoryUrl}}'>{{outcome}} - {{mode}} - {{livestamp matchCreation}}</a> <img class='champ-icon' src="{{championImage}}" alt="{{champion}}"> {{kills}}/{{deaths}}/{{assists}} ({{kda}}) {{cs}} CS {{#each summonerSpells}} {{>summonerSpell}} {{/each}} {{#each items}} {{>item}} {{/each}}</li>
 </template>
 
 <template name="summonerSpell">
@@ -69,6 +71,5 @@
 </template>
 
 <template name="hello">
-<button class="btn-primary btn">Click Me</button>
-<p>You've pressed the button {{counter}} times.</p>
+<button class="btn-primary btn">!!Clear DB!!</button>
 </template>

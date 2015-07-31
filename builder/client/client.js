@@ -22,9 +22,10 @@ Template.passData.helpers({
 
 Template.passData.events({
     'click #recent-btn': function() {
+        $('#progress').html('pls wait');
         Meteor.call('getRecentMatches', $('input[type=text]').val(), 'na', function(err, response) {
             Session.set('matches', response);
-            console.log(response);
+            $('#progress').html('k done');
         });
     },
     'click #ranked-btn': function() {
