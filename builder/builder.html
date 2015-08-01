@@ -49,9 +49,9 @@
 </body>
 
 <template name="passData">
-<span>Summoner Name: </span><input type="text" value="hpp3"/>
+<span>Summoner Name: </span><input type="text" id='summoner-name' value="hpp3"/>
 <input type="button" id="recent-btn" class="btn btn-primary" value="Recent" />
-<input type="button" id="ranked-btn" class="btn btn-primary" value="Ranked" />
+<!-- <input type="button" id="ranked-btn" class="btn btn-primary" value="Ranked" /> -->
 <ul>{{#each matches}}
         {{> match}}
     {{/each}}
@@ -59,8 +59,17 @@
 </template>
 
 <template name="match">
-<li><a href='{{matchHistoryUrl}}'>{{outcome}} - {{mode}} - {{livestamp matchCreation}}</a> <img class='champ-icon' src="{{championImage}}" alt="{{champion}}"> {{kills}}/{{deaths}}/{{assists}} ({{kda}}) {{cs}} CS {{#each summonerSpells}} {{>summonerSpell}} {{/each}} {{#each items}} {{>item}} {{/each}}</li>
+<li><a href='{{matchHistoryUrl}}' target="_blank">{{minutes}}:{{seconds}} {{outcome}} - {{mode}} - {{livestamp matchCreation}}</a> <img class='champ-icon' src="{{championImage}}" alt="{{champion}}"> {{kills}}/{{deaths}}/{{assists}} ({{kda}}) {{cs}} CS {{#each summonerSpells}} {{>summonerSpell}} {{/each}} {{#each items}} {{>item}} {{/each}} {{#each teams}} {{> team}} {{/each}}</li>
 </template>
+
+<template name="team">
+[ {{#each players}} {{> player}} {{/each}} ]
+</template>
+
+<template name="player">
+<img class='ss-icon' src='{{championImage}}'> {{name}}
+</template>
+
 
 <template name="summonerSpell">
 <img class='ss-icon' src='{{image}}' alt='{{name}}'>

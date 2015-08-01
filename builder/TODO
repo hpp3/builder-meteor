@@ -1,7 +1,6 @@
-more stats? kda, cs, duration, players 
-fix my caching scheme (esp for match data)
 css/html/bootstrap fixes
 figure out what the deal with routes is
+    modify url (client side routing????)
 click the match for details!
 build nerd math
 figure out the websockets error
@@ -9,21 +8,3 @@ figure out the websockets error
 
 bugtracker:
 "throbber" is shitty
-0 in match data is undefined (cs, kills, death, assists)
-missing game bug, see notes
-
-
-notes:
-jul 30 2:40 test (fixed caching bug, and reverse db bug) & clear db
-    RoA currently playing braum (most recent is 5/1/2 ezreal, last is 5/7/6 elise)
-    c9 LOD currently playing trist (most recent is 13/3/13 corki, last is 2/9/6 trist)
-    japanman currently playing zac (most recent is 9/8/11 lee, last is 3/7/5 kayle)
-game done as of 2:55
-3:20 japanman looks like it worked
-3:45 C9 LOD BUG IS CONFIRMED
-found the bug
-    it occurs when a game is shared between two players. because the gameId already exists in the DB after you load it for the first player, it doesn't store the game again for the second player. however, the game is only associated with the first player, so the second player doesn't get the game on his page
-
-    solution: store multiple summoners per game, and use $elemMatch to query
-
-    test if fixerino workerino using RoA

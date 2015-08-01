@@ -21,6 +21,15 @@ Template.passData.helpers({
 });
 
 Template.passData.events({
+    'keyup #summoner-name': function(e) {
+        if (e.keyCode == 13) {
+            $('#progress').html('pls wait');
+            Meteor.call('getRecentMatches', $('input[type=text]').val(), 'na', function(err, response) {
+                Session.set('matches', response);
+                $('#progress').html('k done');
+            });
+        }
+    },
     'click #recent-btn': function() {
         $('#progress').html('pls wait');
         Meteor.call('getRecentMatches', $('input[type=text]').val(), 'na', function(err, response) {

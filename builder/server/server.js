@@ -12,6 +12,7 @@ Meteor.startup(function () {
     var matchHistoryBaseUrl = {'na':'http://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/'};
     var caches = {  
         'summonerInfo':new Mongo.Collection('summonerInfoCache'),
+        'summonerName':new Mongo.Collection('summonerNameCache'),
         'championInfo':new Mongo.Collection('championInfoCache'),
         'matchHistory':new Mongo.Collection('matchHistoryCache'),
         'game':new Mongo.Collection('gameCache'),
@@ -35,7 +36,9 @@ Meteor.startup(function () {
         getKappa: function(){
             console.log('DESTROYING DATABASES!');
             for (key in caches) {
-                caches[key].remove({});
+                if (caches.hasOwnProperty(key)) {
+                    caches[key].remove({});
+                };
             }
         },
         getApiData: function(api, args, url, skipCache) {
@@ -46,7 +49,7 @@ Meteor.startup(function () {
                 apiData = cached['_data'];
             }
             else {
-                // console.log('network',api);
+                console.log('network',api);
                 apiData = HTTP.call('GET', url+'&api_key='+getApiKey()).data;
                 cache.upsert(args, _.extend(args, {_data:apiData}));
             }
@@ -71,8 +74,33 @@ Meteor.startup(function () {
             return Meteor.call('getApiData', 'championInfo', {championId:championId}, apiBaseUrl['global']+'api/lol/static-data/na/v1.2/champion/'+championId+'?champData=image', skipCache);
         },
         getSummonerInfo: function(summonerName, region) {
-            var skipCache = true;
-            return Meteor.call('getApiData', 'summonerInfo', {summonerName:summonerName, region:region}, apiBaseUrl[region]+'api/lol/'+region+'/v1.4/summoner/by-name/'+summonerName+'?_foo=1', skipCache)[summonerName.toLowerCase().replace(/\s+/g, '')];
+            var skipCache = false;
+            summonerName = summonerName.toLowerCase().replace(/\s+/g, '');
+            return Meteor.call('getApiData', 'summonerInfo', {summonerName:summonerName, region:region}, apiBaseUrl[region]+'api/lol/'+region+'/v1.4/summoner/by-name/'+summonerName+'?_foo=1', skipCache)[summonerName];
+        },
+        getSummonerNames: function(summonerIds, region) {
+            var cache = caches['summonerName'];
+            var lookup = [];
+            var nameMap = {};
+            _.each(summonerIds, function(id){
+                var result = cache.findOne({summonerId:id, region:region});
+                if (result) {
+                    nameMap[result._data.id] = result._data.name;
+                } else {
+                    lookup.push(id); 
+                } 
+            });
+            if (lookup.length) {
+                var ids = lookup.join();
+                var result = HTTP.call('GET', apiBaseUrl[region]+'api/lol/'+region+'/v1.4/summoner/'+ids+'?api_key='+getApiKey()).data;
+                for (var key in result) {
+                    if (result.hasOwnProperty(key)) {
+                        nameMap[result[key].id] = result[key].name;
+                        cache.upsert({summonerId:result[key].id, region:region}, {$set: {_data: result[key]}});
+                    } 
+                }
+            }
+            return nameMap;
         },
         getMatchHistory: function(summonerId, region) {
             var skipCache = false;
@@ -92,10 +120,10 @@ Meteor.startup(function () {
             return lastUpdate;
         },
         updateGames: function(summonerId, region) {
-            var skipCache = true;
+            var skipCache = false;
             var gameDB = caches['gameDB'];
             var lastUpdate = Meteor.call('getLastUpdate', summonerId, region);
-            var staleDuration = 5*60*1000;
+            var staleDuration = 10*60*1000;
             //var staleDuration = 24*60*60*1000;
             var timeSinceUpdate = Date.now() - lastUpdate.timestamp;
             if (skipCache || timeSinceUpdate > staleDuration) {
@@ -106,7 +134,7 @@ Meteor.startup(function () {
                     console.log(game.gameId, game.createDate);
                     var start = new Date();
                     if (!gameDB.findOne({region:region, gameId:game.gameId, summonerId:summonerId})) {
-                        console.log('preliminary insert');
+                        console.log('add new game');
                         gameDB.insert({summonerId:summonerId, region:region, gameId:game.gameId, game:game, time_inserted:Date.now()});
                     }  
                     var end = new Date();
@@ -140,10 +168,7 @@ Meteor.startup(function () {
             return Meteor.call('getApiData', 'game', {summonerId:summonerId, region:region}, apiBaseUrl[region]+'api/lol/'+region+'/v1.3/game/by-summoner/'+summonerId+'/recent?_foo=1', skipCache)['games'];
         },
         deriveData: function(currentVersion, data) {
-            var start = new Date();
             var championInfo = Meteor.call('getChampionInfo', data.championId);
-            var champion = championInfo.name;
-            var championImage = ddragonBaseUrl+currentVersion+'/img/champion/'+championInfo.image.full;
             var summonerSpells = _.map(data.summonerSpellIds, function(id) {
                 var spell = Meteor.call('getSummonerSpellInfo', id);
                 return {name:spell.name, image:ddragonBaseUrl+currentVersion+'/img/spell/'+spell.image.full};
@@ -158,15 +183,51 @@ Meteor.startup(function () {
             } else {
                 var kda = 'infinity';
             }
-            var matchHistoryUrl = matchHistoryBaseUrl[data.region] + data.gameId + '/0';
-            return _.extend(data, {champion:champion, championImage:championImage, summonerSpells:summonerSpells, items:items, kda:kda, matchHistoryUrl:matchHistoryUrl});
+            var summonerIds = _.map(data._teams[0].players.concat(data._teams[1].players), function(player) {
+                return player.summonerId; 
+            });
+            var nameMap = Meteor.call('getSummonerNames', summonerIds, data.region);
+            var teams = _.map(data._teams, function(team){
+                return {
+                    main:team.main,
+                    players:_.map(team.players, function(player) {
+                        var championImage = Meteor.call('getChampionInfo', player.championId).image.full;
+                        return {
+                            championImage:ddragonBaseUrl+currentVersion+'/img/champion/'+championImage,
+                            name:nameMap[player.summonerId],
+                            summonerId:player.summonerId
+                        }
+                    })
+                };
+            });
+            var derived = {
+                champion:championInfo.name,
+                championImage:ddragonBaseUrl+currentVersion+'/img/champion/'+championInfo.image.full,
+                summonerSpells:summonerSpells,
+                items:items,
+                kda:kda,
+                teams:teams,
+                matchHistoryUrl:matchHistoryBaseUrl[data.region] + data.gameId + '/0',
+                minutes: Math.floor(data.gameDuration / 60),
+                seconds: data.gameDuration % 60
+            };
+            return _.extend(data, derived);
         },
         getRecentMatches: function(summonerName, region) {
             var start = new Date();
             var summonerInfo = Meteor.call('getSummonerInfo', summonerName, region);
-            var games = Meteor.call('getGames2', summonerInfo['id'], region);
+            var games = Meteor.call('getGames2', summonerInfo.id, region);
             var currentVersion = Meteor.call('getCurrentVersion');
             var res = _.map(games, function(match) {
+                var teams = {
+                    100: {players:[], main:false},
+                    200: {players:[], main:false}
+                };
+                teams[match.stats.team].players.push({summonerId: summonerInfo.id, championId: match.championId});
+                teams[match.stats.team].main = true;
+                _.each(match.fellowPlayers, function (player) {
+                    teams[player.teamId].players.push({championId:player.championId, summonerId:player.summonerId});
+                });
                 var data = {
                     outcome: match.stats.win ? 'VICTORY' : 'DEFEAT',
                     region:region,
@@ -174,11 +235,13 @@ Meteor.startup(function () {
                     mode: match.subType,
                     matchCreation: match.createDate,
                     summonerSpellIds: [match.spell1, match.spell2],
+                    _teams: [teams[100], teams[200]],
                     itemIds: [match.stats.item0, match.stats.item1, match.stats.item2, match.stats.item3, match.stats.item4, match.stats.item5, match.stats.item6],
-                    kills: match.stats.championsKilled,
-                    deaths: match.stats.numDeaths,
-                    assists: match.stats.assists,
+                    kills: match.stats.championsKilled || 0,
+                    deaths: match.stats.numDeaths || 0,
+                    assists: match.stats.assists || 0,
                     gameId: match.gameId,
+                    gameDuration: match.stats.timePlayed,
                     cs: (match.stats.minionsKilled || 0) + (match.stats.neutralMinionsKilled || 0)
                 };
                 return Meteor.call('deriveData', currentVersion, data);
@@ -188,6 +251,7 @@ Meteor.startup(function () {
             return res;
         },
         getRankedMatches: function(summonerName, region) {
+            //deprecated and not maintained
             var summonerInfo = Meteor.call('getSummonerInfo', summonerName, region);
             var matchHistory = Meteor.call('getMatchHistory', summonerInfo['id'], region);
             var currentVersion = Meteor.call('getCurrentVersion');
