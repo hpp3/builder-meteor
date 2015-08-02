@@ -157,9 +157,7 @@ Meteor.startup(function () {
             var games = db.find({summonerId: summonerId, region: region}, {sort: {time_inserted:-1}, limit:20}).fetch();
             var end = new Date();
             console.log('fetch took',(end-start),'millis');
-            console.log(games.length);
             return _.map(games, function(game) {
-                console.log(game.gameId);
                 return game.game;
             });
         },
@@ -204,12 +202,14 @@ Meteor.startup(function () {
                 champion:championInfo.name,
                 championImage:ddragonBaseUrl+currentVersion+'/img/champion/'+championInfo.image.full,
                 summonerSpells:summonerSpells,
-                items:items,
+                items0_3:items.slice(0,3),
+                items3_6:items.slice(3,6),
+                trinket:items[6],
                 kda:kda,
                 teams:teams,
                 matchHistoryUrl:matchHistoryBaseUrl[data.region] + data.gameId + '/0',
                 minutes: Math.floor(data.gameDuration / 60),
-                seconds: data.gameDuration % 60
+                seconds: data.gameDuration % 60 > 9 ? data.gameDuration % 60 : '0'+data.gameDuration % 60
             };
             return _.extend(data, derived);
         },
@@ -221,7 +221,7 @@ Meteor.startup(function () {
             var res = _.map(games, function(match) {
                 var teams = {
                     100: {players:[], main:false},
-                    200: {players:[], main:false}
+                200: {players:[], main:false}
                 };
                 teams[match.stats.team].players.push({summonerId: summonerInfo.id, championId: match.championId});
                 teams[match.stats.team].main = true;
@@ -229,7 +229,7 @@ Meteor.startup(function () {
                     teams[player.teamId].players.push({championId:player.championId, summonerId:player.summonerId});
                 });
                 var data = {
-                    outcome: match.stats.win ? 'VICTORY' : 'DEFEAT',
+                    win: match.stats.win,
                     region:region,
                     championId: match.championId,
                     mode: match.subType,
@@ -257,7 +257,7 @@ Meteor.startup(function () {
             var currentVersion = Meteor.call('getCurrentVersion');
             return _.map(matchHistory.reverse(), function(match) {
                 var data = {
-                    outcome: match.participants[0].stats.winner ? 'VICTORY' : 'DEFEAT',
+                    win: match.participants[0].stats.winner ? 'VICTORY' : 'DEFEAT',
                     region:region,
                     championId: match.participants[0].championId,
                     mode: match['queueType'],

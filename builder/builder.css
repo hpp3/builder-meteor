@@ -7,6 +7,57 @@
     max-height:25px;
 }
 
+.player-icon {
+    max-height:33px;
+    margin-top:3px;
+    margin-bottom:3px;
+}
+
 .item-icon {
     max-height:33px;
+}
+
+.match-lose {
+    border: 1px #502B2B solid;
+    background-color: #814545;
+}
+.match-win {
+    border: 1px #2B504C solid;
+    background-color: #357321;
+}
+.match {
+    border-radius: 4px;
+    margin-bottom: 1px;
+}
+
+.match-header {
+    position: relative;
+}
+
+.matchHistoryLink {
+    position: absolute;
+    right: 5px;
+    top: 0px;
+    text-align: right;
+}
+
+.inline-block {
+    display: inline-block;
+}
+
+.team-main {
+    background-color: #3F89B5;
+}
+
+.team {
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
+.teams {
+    margin-left:10px;
+}
+
+.container {
+    max-width:750px;
 }

@@ -5,8 +5,7 @@
 </head>
 
 <body>
-<h1>Welcome to Builder!</h1>
-<div class="navbar navbar-fixed-top navbar-default" role="navigation">
+<div class="hidden navbar navbar-fixed-top navbar-default" role="navigation">
     <div class="navbar-container container">
         <div class="navbar-header">
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -41,6 +40,7 @@
     </div>
 </div>
 <div class="page-container container">
+<h1>Welcome to Builder!</h1>
 
 {{> hello}}
 <div id='progress'></div>
@@ -52,27 +52,68 @@
 <span>Summoner Name: </span><input type="text" id='summoner-name' value="hpp3"/>
 <input type="button" id="recent-btn" class="btn btn-primary" value="Recent" />
 <!-- <input type="button" id="ranked-btn" class="btn btn-primary" value="Ranked" /> -->
-<ul>{{#each matches}}
-        {{> match}}
-    {{/each}}
-</ul>
+{{#each matches}}
+{{> match}}
+{{/each}}
 </template>
 
 <template name="match">
-<li><a href='{{matchHistoryUrl}}' target="_blank">{{minutes}}:{{seconds}} {{outcome}} - {{mode}} - {{livestamp matchCreation}}</a> <img class='champ-icon' src="{{championImage}}" alt="{{champion}}"> {{kills}}/{{deaths}}/{{assists}} ({{kda}}) {{cs}} CS {{#each summonerSpells}} {{>summonerSpell}} {{/each}} {{#each items}} {{>item}} {{/each}} {{#each teams}} {{> team}} {{/each}}</li>
+<div class='match {{#if win}}match-win{{else}}match-lose{{/if}}'>
+    <div class='match-header'>
+        <div class='header-text'>
+            {{#if win}}VICTORY{{else}}DEFEAT{{/if}} / {{mode}} / {{minutes}}:{{seconds}} - {{livestamp matchCreation}}
+        </div>
+        <div class='matchHistoryLink'>
+            <a href='{{matchHistoryUrl}}' target="_blank">View on Match History <span class='glyphicon glyphicon-new-window'></span></a> 
+        </div>
+    </div> 
+
+    <div class='match-stats'> 
+        <span class='champ-portrait'>
+        <img class='champ-icon' src="{{championImage}}" alt="{{champion}}"> 
+        </span>
+        <div class='summoner-spells inline-block'>
+            {{#each summonerSpells}} {{>summonerSpell}} {{/each}} 
+        </div>
+        <div class='stats inline-block'>
+            <div>
+                {{kills}}/{{deaths}}/{{assists}} ({{kda}}) 
+            </div>
+            <div>
+                {{cs}} CS
+            </div>
+        </div>
+        <div class='items inline-block'>
+            <div>
+            {{#each items0_3}} {{>item}} {{/each}} 
+            </div>
+            <div>
+            {{#each items3_6}} {{>item}} {{/each}} 
+            </div>
+        </div>
+        <span class='trinket'>
+            {{> item trinket}}
+        </span>
+        <div class='teams inline-block'>{{#each teams}} {{> team}} {{/each}}</div>
+    </div>
+</div>
 </template>
 
 <template name="team">
-[ {{#each players}} {{> player}} {{/each}} ]
+<div class='team {{#if main}}team-main{{/if}}'>
+{{#each players}} {{> player}} {{/each}}
+</div>
 </template>
 
 <template name="player">
-<img class='ss-icon' src='{{championImage}}'> {{name}}
+<img class='player-icon' src='{{championImage}}'>
 </template>
 
 
 <template name="summonerSpell">
-<img class='ss-icon' src='{{image}}' alt='{{name}}'>
+<div>
+    <img class='ss-icon' src='{{image}}' alt='{{name}}'>
+</div>
 </template>
 
 <template name="item">
