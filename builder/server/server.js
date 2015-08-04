@@ -171,6 +171,7 @@ Meteor.startup(function () {
                 var spell = Meteor.call('getSummonerSpellInfo', id);
                 return {name:spell.name, image:ddragonBaseUrl+currentVersion+'/img/spell/'+spell.image.full};
             });
+            console.log(data.itemIds);
             var items = _.map(data.itemIds, function(id) {
                 if (!id) return {name:'none', image:'empty.png'};
                 var item = Meteor.call('getItemInfo', id);
@@ -241,6 +242,9 @@ Meteor.startup(function () {
                     deaths: match.stats.numDeaths || 0,
                     assists: match.stats.assists || 0,
                     gameId: match.gameId,
+                    wards: match.stats.wardPlaced || 0,
+                    gold: match.stats.goldEarned || 0, 
+                    level: match.stats.level,
                     gameDuration: match.stats.timePlayed,
                     cs: (match.stats.minionsKilled || 0) + (match.stats.neutralMinionsKilled || 0)
                 };

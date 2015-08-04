@@ -61,3 +61,22 @@
 .container {
     max-width:750px;
 }
+
+.match-stats > * {
+    vertical-align: middle;
+    display: inline-block;
+}
+
+.stats {
+    min-width: 8em;
+    margin-left:1em;
+
+}
+
+.level-gold {
+    min-width: 8em;
+}
+
+.champ-portrait {
+    margin-left: 5px;
+}

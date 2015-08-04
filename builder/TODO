@@ -1,10 +1,15 @@
+features:
 css/html/bootstrap fixes
+handle error statuses (404, 429)
 figure out what the deal with routes is
     modify url (client side routing????)
+support other regions
 click the match for details!
 build nerd math
-figure out the websockets error
+translate the ALL_CAPS_5x5 to real strings
 
 
 bugtracker:
 "throbber" is shitty
+item 3350 (greater totem) causes trouble
+figure out the websockets error
