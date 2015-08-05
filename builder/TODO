@@ -1,15 +1,30 @@
 features:
-css/html/bootstrap fixes
+still some css enhancements
+    style text
+
 handle error statuses (404, 429)
+    404 for items and summoners
 figure out what the deal with routes is
     modify url (client side routing????)
 support other regions
+    done, needs testing?
+        probably works for euw, na
 click the match for details!
 build nerd math
 translate the ALL_CAPS_5x5 to real strings
+mobile support
+    fix huge match-header issue
+    consider responsive design
+    fix default scaling
 
 
 bugtracker:
 "throbber" is shitty
-item 3350 (greater totem) causes trouble
 figure out the websockets error
+why is the match-header so huge on mobile?
+enter key no longer works properly
+
+changelog:
+added region support
+added item 3350
+fixed hexakill and improved the player display in general

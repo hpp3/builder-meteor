@@ -7,9 +7,25 @@ Meteor.startup(function () {
     //         return '[redacted]';
     //     }
     // });
-    var apiBaseUrl = {'na': 'https://na.api.pvp.net/', 'global': 'https://global.api.pvp.net/'};
+    var apiBaseUrl = {
+        'br': 'https://br.api.pvp.net/', 
+        'eune': 'https://eune.api.pvp.net/', 
+        'euw': 'https://euw.api.pvp.net/', 
+        'kr': 'https://kr.api.pvp.net/', 
+        'lan': 'https://lan.api.pvp.net/', 
+        'las': 'https://las.api.pvp.net/', 
+        'na': 'https://na.api.pvp.net/', 
+        'oce': 'https://oce.api.pvp.net/', 
+        'tr': 'https://tr.api.pvp.net/', 
+        'ru': 'https://ru.api.pvp.net/', 
+        'global': 'https://global.api.pvp.net/'
+    };
+
+    var matchHistoryBaseUrl = {
+        'na':'http://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/',
+        'euw':'http://matchhistory.euw.leagueoflegends.com/en/#match-details/EUW1/',
+    };
     var ddragonBaseUrl = 'https://ddragon.leagueoflegends.com/cdn/';
-    var matchHistoryBaseUrl = {'na':'http://matchhistory.na.leagueoflegends.com/en/#match-details/NA1/'};
     var caches = {  
         'summonerInfo':new Mongo.Collection('summonerInfoCache'),
         'summonerName':new Mongo.Collection('summonerNameCache'),
@@ -113,13 +129,13 @@ Meteor.startup(function () {
             console.log(db.upsert({summonerId:summonerId, region:region}, {$set:{timestamp:timestamp, gameId:gameId}}));
         },
         getLastUpdate: function(summonerId, region) {
-            console.log("get Last update!");
             var db = caches['lastUpdate'];
             var lastUpdate = db.findOne({summonerId:summonerId, region:region});
             if (!lastUpdate) return {timestamp:0, gameId:0};
             return lastUpdate;
         },
         updateGames: function(summonerId, region) {
+            var start = new Date();
             var skipCache = false;
             var gameDB = caches['gameDB'];
             var lastUpdate = Meteor.call('getLastUpdate', summonerId, region);
@@ -149,6 +165,7 @@ Meteor.startup(function () {
             } else {
                 console.log('no need to update, because last update was', timeSinceUpdate, 'milliseconds ago');
             }
+            console.log('update games took', new Date() - start);
         },
         getGames2: function(summonerId, region) {
             Meteor.call('updateGames', summonerId, region);
@@ -166,21 +183,25 @@ Meteor.startup(function () {
             return Meteor.call('getApiData', 'game', {summonerId:summonerId, region:region}, apiBaseUrl[region]+'api/lol/'+region+'/v1.3/game/by-summoner/'+summonerId+'/recent?_foo=1', skipCache)['games'];
         },
         deriveData: function(currentVersion, data) {
+            var start = new Date();
             var championInfo = Meteor.call('getChampionInfo', data.championId);
             var summonerSpells = _.map(data.summonerSpellIds, function(id) {
                 var spell = Meteor.call('getSummonerSpellInfo', id);
                 return {name:spell.name, image:ddragonBaseUrl+currentVersion+'/img/spell/'+spell.image.full};
             });
-            console.log(data.itemIds);
             var items = _.map(data.itemIds, function(id) {
-                if (!id) return {name:'none', image:'empty.png'};
+                if (!id) return {name:'none', image:'empty_64.png'};
+                if (id == 3350) return {
+                    name: 'Greater Totem',
+                    image: '3350_64.png'
+                }
                 var item = Meteor.call('getItemInfo', id);
                 return {name:item.name, image:ddragonBaseUrl+currentVersion+'/img/item/'+item.image.full};
             });
             if (data.deaths) {
                 var kda = ((data.kills+data.assists)/data.deaths).toFixed(1);
             } else {
-                var kda = 'infinity';
+                var kda = 'perfect';
             }
             var summonerIds = _.map(data._teams[0].players.concat(data._teams[1].players), function(player) {
                 return player.summonerId; 
@@ -212,13 +233,17 @@ Meteor.startup(function () {
                 minutes: Math.floor(data.gameDuration / 60),
                 seconds: data.gameDuration % 60 > 9 ? data.gameDuration % 60 : '0'+data.gameDuration % 60
             };
+            console.log('derive took', new Date() - start, 'millis');
             return _.extend(data, derived);
         },
         getRecentMatches: function(summonerName, region) {
+            console.log(summonerName, region);
             var start = new Date();
             var summonerInfo = Meteor.call('getSummonerInfo', summonerName, region);
             var games = Meteor.call('getGames2', summonerInfo.id, region);
+            var dd = new Date();
             var currentVersion = Meteor.call('getCurrentVersion');
+            console.log('version took', new Date() - dd, 'millis');
             var res = _.map(games, function(match) {
                 var teams = {
                     100: {players:[], main:false},

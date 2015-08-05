@@ -28,6 +28,8 @@
 .match {
     border-radius: 4px;
     margin-bottom: 1px;
+    width: 720px;
+    float: left;
 }
 
 .match-header {
@@ -55,7 +57,7 @@
 }
 
 .teams {
-    margin-left:10px;
+    float: right;
 }
 
 .container {
@@ -67,6 +69,10 @@
     display: inline-block;
 }
 
+.match-stats {
+    padding: 5px;
+}
+
 .stats {
     min-width: 8em;
     margin-left:1em;
@@ -74,9 +80,8 @@
 }
 
 .level-gold {
-    min-width: 8em;
+    min-width: 7em;
 }
 
 .champ-portrait {
-    margin-left: 5px;
 }
