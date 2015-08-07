@@ -25,6 +25,4 @@ why is the match-header so huge on mobile?
 enter key no longer works properly
 
 changelog:
-added region support
-added item 3350
-fixed hexakill and improved the player display in general
+fixed search region enter bug

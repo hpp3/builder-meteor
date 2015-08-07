@@ -40,7 +40,7 @@ Template.passData.events({
     'keyup #summoner-name': function(e) {
         if (e.keyCode == 13) {
             $('#progress').html('pls wait');
-            Meteor.call('getRecentMatches', $('input[type=text]').val(), 'na', function(err, response) {
+            Meteor.call('getRecentMatches', $('#summoner-name').val(), $('#region-select').val(), function(err, response) {
                 Session.set('matches', response);
                 $('#progress').html('k done');
             });
