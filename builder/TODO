@@ -1,17 +1,42 @@
+work on:
+
 features:
 still some css enhancements
     style text
-
-handle error statuses (404, 429)
-    404 for items and summoners
+custom 404 handler
 figure out what the deal with routes is
     modify url (client side routing????)
-support other regions
-    done, needs testing?
-        probably works for euw, na
 click the match for details!
 build nerd math
+    determine when champions "base"
+        time is in milliseconds (assume all shop events within 10 seconds are a base?)
+    determine how many stats/what spells champions have during baseEvents
+        for tear, must estimate based off game time and spellcast info
+        for mejai/occult, can compute
+    foreach item (or item combos?) in items (or restricted subset of items): 
+        foreach enemy in enemy_team + [baron, dragon]:
+            calculate dps, and time needed to kill enemy, or print 'one shottable'
+            compute how much damage you take from  enemy (burst and dps)
+        do some kind of weighting?
+        implement item passives
+            easy:
+                -lw/void
+                -iedge
+                -dcap
+                -frozen heart
+                -randuin
+                -haunting guise
+            hard:
+                -liandry
+                -botrk
+                -luden
+                -spellblade
+    determine which items counter which champions?
+        e.g. 65% win rate vs zed with zhonya or qss
+    compute 'build mistakes' and enumerate
+
 translate the ALL_CAPS_5x5 to real strings
+make match loading dynamic (load cached results first then do API call)
 mobile support
     fix huge match-header issue
     consider responsive design
@@ -25,4 +50,3 @@ why is the match-header so huge on mobile?
 enter key no longer works properly
 
 changelog:
-fixed search region enter bug

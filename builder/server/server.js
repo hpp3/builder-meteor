@@ -57,6 +57,29 @@ Meteor.startup(function () {
                 };
             }
         },
+        callApi: function(method, url) {
+            try {
+                return HTTP.call(method, url).data;
+            } catch (err) {
+                switch (err.response.statusCode) {
+                    case 404:
+                        throw new Meteor.Error(err.response.statusCode, "Resource not found"); 
+                        break;
+                    case 429:
+                        throw new Meteor.Error(err.response.statusCode, "Rate limit exceeded"); 
+                        break;
+                    case 401:
+                        throw new Meteor.Error(err.response.statusCode, "Unauthorized"); 
+                        break;
+                    case 500:
+                    case 503:
+                        throw new Meteor.Error(err.response.statusCode, "Riot API unavailable"); 
+                        break;
+                    default:
+                        throw new Meteor.Error(err.response.statusCode, "Unknown Error"); 
+                }
+            }
+        },
         getApiData: function(api, args, url, skipCache) {
             var apiData;
             var cache = caches[api];
@@ -66,13 +89,13 @@ Meteor.startup(function () {
             }
             else {
                 console.log('network',api);
-                apiData = HTTP.call('GET', url+'&api_key='+getApiKey()).data;
+                apiData = Meteor.call('callApi', 'GET', url+'&api_key='+getApiKey());
                 cache.upsert(args, _.extend(args, {_data:apiData}));
             }
             return apiData;
         },
         getCurrentVersion: function() {
-            return HTTP.call('GET', 'https://global.api.pvp.net/api/lol/static-data/na/v1.2/versions?api_key='+getApiKey()).data[0]; 
+            return Meteor.call('callApi', 'GET', 'https://global.api.pvp.net/api/lol/static-data/na/v1.2/versions?api_key='+getApiKey())[0];
         },
         getItemInfo: function(itemId) {
             var skipCache = false;
@@ -108,7 +131,7 @@ Meteor.startup(function () {
             });
             if (lookup.length) {
                 var ids = lookup.join();
-                var result = HTTP.call('GET', apiBaseUrl[region]+'api/lol/'+region+'/v1.4/summoner/'+ids+'?api_key='+getApiKey()).data;
+                var result = Meteor.call('callApi', 'GET', apiBaseUrl[region]+'api/lol/'+region+'/v1.4/summoner/'+ids+'?api_key='+getApiKey());
                 for (var key in result) {
                     if (result.hasOwnProperty(key)) {
                         nameMap[result[key].id] = result[key].name;
@@ -144,7 +167,17 @@ Meteor.startup(function () {
             var timeSinceUpdate = Date.now() - lastUpdate.timestamp;
             if (skipCache || timeSinceUpdate > staleDuration) {
                 console.log('fetching games from api for',summonerId,region);
-                var recentGames = HTTP.call('GET', apiBaseUrl[region]+'api/lol/'+region+'/v1.3/game/by-summoner/'+summonerId+'/recent?_foo=1&api_key='+getApiKey()).data.games;
+                try {
+                    var recentGames = Meteor.call('callApi', 'GET', apiBaseUrl[region]+'api/lol/'+region+'/v1.3/game/by-summoner/'+summonerId+'/recent?_foo=1&api_key='+getApiKey()).games;
+                } catch (err) {
+                    switch (err.error) {
+                        case 404:
+                            throw new Meteor.Error(err.error, "No games found"); 
+                            break; 
+                        default:
+                            throw err;
+                    } 
+                }
                 console.log('lastUpdate:',lastUpdate.gameId, lastUpdate.timestamp);
                 _.each(recentGames.reverse(), function(game) {
                     console.log(game.gameId, game.createDate);
@@ -239,7 +272,17 @@ Meteor.startup(function () {
         getRecentMatches: function(summonerName, region) {
             console.log(summonerName, region);
             var start = new Date();
-            var summonerInfo = Meteor.call('getSummonerInfo', summonerName, region);
+            try {
+                var summonerInfo = Meteor.call('getSummonerInfo', summonerName, region);
+            } catch (err) {
+                switch (err.error) {
+                    case 404:
+                        throw new Meteor.Error(err.error, "Summoner not found"); 
+                        break;
+                    default:
+                        throw err;
+                }
+            }
             var games = Meteor.call('getGames2', summonerInfo.id, region);
             var dd = new Date();
             var currentVersion = Meteor.call('getCurrentVersion');
@@ -247,7 +290,7 @@ Meteor.startup(function () {
             var res = _.map(games, function(match) {
                 var teams = {
                     100: {players:[], main:false},
-                200: {players:[], main:false}
+                    200: {players:[], main:false}
                 };
                 teams[match.stats.team].players.push({summonerId: summonerInfo.id, championId: match.championId});
                 teams[match.stats.team].main = true;

@@ -36,24 +36,29 @@ Template.passData.helpers({
     }
 });
 
+function loadRecentMatches() {
+    $('#progress').html('pls wait');
+    Meteor.call('getRecentMatches', $('#summoner-name').val(), $('#region-select').val(), function(err, response) {
+        if (err) {
+            $('#progress').html(err.reason);
+            Session.set('matches', []);
+        } else {
+            Session.set('matches', response);
+            $('#progress').html('k done');
+        }
+    });
+}
+
 Template.passData.events({
     'keyup #summoner-name': function(e) {
         if (e.keyCode == 13) {
-            $('#progress').html('pls wait');
-            Meteor.call('getRecentMatches', $('#summoner-name').val(), $('#region-select').val(), function(err, response) {
-                Session.set('matches', response);
-                $('#progress').html('k done');
-            });
+            loadRecentMatches();
             e.preventDefault();
             return false;
         }
     },
     'click #recent-btn': function() {
-        $('#progress').html('pls wait');
-        Meteor.call('getRecentMatches', $('#summoner-name').val(), $('#region-select').val(), function(err, response) {
-            Session.set('matches', response);
-            $('#progress').html('k done');
-        });
+        loadRecentMatches();
     },
     'click #ranked-btn': function() {
         $('#progress').html('pls wait');
