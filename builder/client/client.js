@@ -14,6 +14,14 @@ Template.hello.events({
     }
 });
 
+Template.region.helpers({
+    selectedRegion: function(code) {
+        var parentContext = Template.parentData();
+        if (parentContext.region) return parentContext.region() == code;
+        return code == 'na';
+    },
+});
+
 Template.passData.helpers({
     matches: function () {
         return Session.get('matches');
@@ -37,16 +45,17 @@ Template.passData.helpers({
 });
 
 function loadRecentMatches() {
-    $('#progress').html('pls wait');
-    Meteor.call('getRecentMatches', $('#summoner-name').val(), $('#region-select').val(), function(err, response) {
-        if (err) {
-            $('#progress').html(err.reason);
-            Session.set('matches', []);
-        } else {
-            Session.set('matches', response);
-            $('#progress').html('k done');
-        }
-    });
+    $('#progress').html('Loading...');
+    FlowRouter.go('/'+$('#region-select').val()+'/'+$('#summoner-name').val());
+    // Meteor.call('getRecentMatches', $('#summoner-name').val(), $('#region-select').val(), function(err, response) {
+    //     if (err) {
+    //         $('#progress').html(err.reason);
+    //         Session.set('matches', []);
+    //     } else {
+    //         Session.set('matches', response);
+    //         $('#progress').html('');
+    //     }
+    // });
 }
 
 Template.passData.events({

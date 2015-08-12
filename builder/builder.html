@@ -2,7 +2,7 @@
 <title>Buildr</title>
 <meta name="viewport" content="width=750, initial-scale=1">
 <link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.5/darkly/bootstrap.min.css" rel="stylesheet">
-<link rel="icon" href="favicon.ico" type="image/x-icon"/>
+<link rel="icon" href="favicon.ico" type="image/png"/>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 </head>
 
@@ -41,17 +41,19 @@
         </div>
     </div>
 </div>
-<div class="page-container container">
-<h1>Welcome to Builder!</h1>
-
-{{> passData}}
-</div>
 </body>
+<template name="index">
+    <div class="page-container container">
+    <h1>Welcome to Builder!</h1>
+
+    {{> passData}}
+    </div>
+</template>
 
 <template name="passData">
 <form class='form-inline' onSubmit="return false">
     <div class='form-group'>
-        <input type="text" id='summoner-name' class='form-control' placeholder='Summoner Name' value='hpp3'>
+        <input type="text" id='summoner-name' class='form-control' placeholder='Summoner Name' value='{{summonerName}}'>
     </div>
     <div class='form-group'>
     <select id='region-select' class='form-control'>
@@ -60,17 +62,17 @@
         {{/each}}
     </select>
     </div>
-    <input type="button" id="recent-btn" class="btn btn-primary" value="Recent">
+    <input type="button" id="recent-btn" class="btn btn-primary" value="Find">
 </form>
 <!-- <input type="button" id="ranked-btn" class="btn btn-primary" value="Ranked" /> -->
-<div id='progress'></div>
+<div id='progress'>{{#if summonerName}}Loading...{{/if}}</div>
 {{#each matches}}
     {{> match}}
 {{/each}}
 </template>
 
 <template name="region">
-<option value='{{code}}' selected={{default}}>
+<option value='{{code}}' selected={{selectedRegion code}}>
 {{code}}
 </option>
 </template>
@@ -136,7 +138,9 @@
 </template>
 
 <template name="player">
-<img class='player-icon' src='{{championImage}}'>
+<a href='/{{region}}/name'>
+<img class='player-icon' src='{{championImage}}' title='{{name}}'>
+</a>
 </template>
 
 

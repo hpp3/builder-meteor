@@ -9,3 +9,5 @@ autopublish
 insecure
 http
 copleykj:livestamp
+kadira:flow-router
+kadira:blaze-layout

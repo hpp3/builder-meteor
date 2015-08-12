@@ -1,12 +1,11 @@
 work on:
 
 features:
-still some css enhancements
-    style text
+style text
 custom 404 handler
 figure out what the deal with routes is
     modify url (client side routing????)
-click the match for details!
+    click the match for details!
 build nerd math
     determine when champions "base"
         time is in milliseconds (assume all shop events within 10 seconds are a base?)
@@ -42,11 +41,12 @@ mobile support
     consider responsive design
     fix default scaling
 
-
 bugtracker:
 "throbber" is shitty
-figure out the websockets error
 why is the match-header so huge on mobile?
-enter key no longer works properly
+loading same summoner causes permanent "loading" message (load hpp3, then click find again)
 
 changelog:
+client side routing, rendering
+route for player lookup
+search uses route

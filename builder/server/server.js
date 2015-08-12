@@ -66,6 +66,9 @@ Meteor.startup(function () {
                         throw new Meteor.Error(err.response.statusCode, "Resource not found"); 
                         break;
                     case 429:
+                        console.log('429 Error:');
+                        console.log(err.response);
+                        console.log(err.response.headers);
                         throw new Meteor.Error(err.response.statusCode, "Rate limit exceeded"); 
                         break;
                     case 401:
@@ -76,6 +79,7 @@ Meteor.startup(function () {
                         throw new Meteor.Error(err.response.statusCode, "Riot API unavailable"); 
                         break;
                     default:
+                        console.log(err.response);
                         throw new Meteor.Error(err.response.statusCode, "Unknown Error"); 
                 }
             }
@@ -102,7 +106,18 @@ Meteor.startup(function () {
             if (itemId in bootsMap) {
                 itemId = bootsMap[itemId]
             }
-            return Meteor.call('getApiData', 'itemInfo', {itemId:itemId}, apiBaseUrl['global']+'api/lol/static-data/na/v1.2/item/'+itemId+'?itemData=image', skipCache);
+            try {
+                var item = Meteor.call('getApiData', 'itemInfo', {itemId:itemId}, apiBaseUrl['global']+'api/lol/static-data/na/v1.2/item/'+itemId+'?itemData=image', skipCache);
+            } catch (err) {
+                switch (err.error) {
+                    case 404:
+                        return {name:itemId, image:'/'};
+                        break;
+                    default:
+                        throw err;
+                }
+            }
+            return item;
         },
         getSummonerSpellInfo: function(summonerSpellId) {
             var skipCache = false;
@@ -223,10 +238,10 @@ Meteor.startup(function () {
                 return {name:spell.name, image:ddragonBaseUrl+currentVersion+'/img/spell/'+spell.image.full};
             });
             var items = _.map(data.itemIds, function(id) {
-                if (!id) return {name:'none', image:'empty_64.png'};
+                if (!id) return {name:'none', image:'/empty_64.png'};
                 if (id == 3350) return {
                     name: 'Greater Totem',
-                    image: '3350_64.png'
+                    image: '/3350_64.png'
                 }
                 var item = Meteor.call('getItemInfo', id);
                 return {name:item.name, image:ddragonBaseUrl+currentVersion+'/img/item/'+item.image.full};
@@ -248,7 +263,8 @@ Meteor.startup(function () {
                         return {
                             championImage:ddragonBaseUrl+currentVersion+'/img/champion/'+championImage,
                             name:nameMap[player.summonerId],
-                            summonerId:player.summonerId
+                            summonerId:player.summonerId,
+                            region:data.region
                         }
                     })
                 };
@@ -266,7 +282,6 @@ Meteor.startup(function () {
                 minutes: Math.floor(data.gameDuration / 60),
                 seconds: data.gameDuration % 60 > 9 ? data.gameDuration % 60 : '0'+data.gameDuration % 60
             };
-            console.log('derive took', new Date() - start, 'millis');
             return _.extend(data, derived);
         },
         getRecentMatches: function(summonerName, region) {
