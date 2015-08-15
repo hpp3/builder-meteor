@@ -46,7 +46,13 @@ Template.passData.helpers({
 
 function loadRecentMatches() {
     $('#progress').html('Loading...');
-    FlowRouter.go('/'+$('#region-select').val()+'/'+$('#summoner-name').val());
+    if ($('#summoner-name').val() == FlowRouter.getParam('summonerName') && $('#region-select').val() == FlowRouter.getParam('region')) {
+        console.log('same guy');
+        FlowRouter.reload();
+    } else {
+        console.log('new guy');
+        FlowRouter.go('/'+$('#region-select').val()+'/'+$('#summoner-name').val());
+    }
     // Meteor.call('getRecentMatches', $('#summoner-name').val(), $('#region-select').val(), function(err, response) {
     //     if (err) {
     //         $('#progress').html(err.reason);
